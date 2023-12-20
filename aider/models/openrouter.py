@@ -25,22 +25,22 @@ class OpenRouterModel(Model):
         global cached_model_details
         if cached_model_details is None:
             cached_model_details = openai.Model.list().data
-        found = next(
-            (details for details in cached_model_details if details.get("id") == name), None
-        )
-
-        if found:
-            self.max_context_tokens = int(found.get("context_length"))
-            self.prompt_price = round(float(found.get("pricing").get("prompt")) * 1000, 6)
-            self.completion_price = round(float(found.get("pricing").get("completion")) * 1000, 6)
-
-        else:
+        if not (
+            found := next(
+                (
+                    details
+                    for details in cached_model_details
+                    if details.get("id") == name
+                ),
+                None,
+            )
+        ):
             raise ValueError(f"invalid openrouter model: {name}")
+        self.max_context_tokens = int(found.get("context_length"))
+        self.prompt_price = round(float(found.get("pricing").get("prompt")) * 1000, 6)
+        self.completion_price = round(float(found.get("pricing").get("completion")) * 1000, 6)
 
 
 # TODO run benchmarks and figure out which models support which edit-formats
 def edit_format_for_model(name):
-    if any(str in name for str in ["gpt-4", "claude-2"]):
-        return "diff"
-
-    return "whole"
+    return "diff" if any(str in name for str in ["gpt-4", "claude-2"]) else "whole"

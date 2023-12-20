@@ -16,8 +16,7 @@ class OpenAIModel(Model):
 
         tokens = None
 
-        match = re.search(r"-([0-9]+)k", name)
-        if match:
+        if match := re.search(r"-([0-9]+)k", name):
             tokens = int(match.group(1))
         else:
             for m, t in known_tokens.items():
